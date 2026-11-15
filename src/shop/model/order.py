@@ -1,7 +1,7 @@
 """
-Domain models for order management.
-The domain model represents the core business logic and entities.
-Rule: The 'model' package MUST NOT depend on any other application package (ui, services, persistence, etc.).
+Data models for order management.
+The 'model' package defines core data structures and entities (Order, OrderItem).
+Rule: The 'model' package MUST NOT depend on any other application package (services, adapters, ui).
 """
 
 from dataclasses import dataclass

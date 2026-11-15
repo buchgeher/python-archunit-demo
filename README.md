@@ -30,12 +30,12 @@ src/
 
 ### Architectural Rules Enforced by Tests:
 
-1. **Pure Domain Model (`shop.model`):**
-   - The domain model represents the core business logic.
+1. **Pure Data Model (`shop.model`):**
+   - The `model` namespace defines domain entities and data structures (`Order`, `OrderItem`).
    - It **MUST NOT** import anything from `shop.services`, `shop.adapters`, or `shop.ui`.
 2. **Asymmetric Dependency Flow:**
-   - `shop.services` **MAY** import `shop.model` and `shop.adapters`.
-   - `shop.model` and `shop.adapters` **MUST NOT** import `shop.services` (prevents cyclic dependencies and domain leakage).
+   - `shop.services` contains application business logic and orchestration, and **MAY** import `shop.model` and `shop.adapters`.
+   - `shop.model` and `shop.adapters` **MUST NOT** import `shop.services` (prevents cyclic dependencies and architectural leakage).
 3. **UI Isolation (`shop.ui`):**
    - `shop.ui` may call `services` and `model`.
    - Backend layers (`model`, `services`, `adapters`) **MUST NEVER** depend on `shop.ui`.

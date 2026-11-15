@@ -19,12 +19,12 @@ from pytest_archon import archrule
 
 
 # ==============================================================================
-# USE CASE 1: Pure Domain Model (Strict Isolation)
+# USE CASE 1: Pure Data Model / Entities (Strict Isolation)
 # ==============================================================================
 def test_model_must_not_depend_on_other_packages():
     """
-    USE CASE 1: The 'model' namespace represents pure domain business logic.
-    It MUST NOT depend on any other namespace of the application.
+    USE CASE 1: The 'model' namespace contains the domain data model (entities & data structures).
+    It MUST NOT depend on any other namespace of the application (services, adapters, ui).
     
     DEMO:
     To see this test FAIL (Red):
@@ -37,8 +37,8 @@ def test_model_must_not_depend_on_other_packages():
     """
     (
         archrule(
-            "pure_domain_model",
-            comment="The domain model must not import services, adapters, or UI",
+            "pure_data_model",
+            comment="The data model must not import services, adapters, or UI",
         )
         .match("shop.model*")
         .should_not_import("shop.services*")
