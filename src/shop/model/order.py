@@ -8,13 +8,12 @@ from dataclasses import dataclass
 from typing import List
 
 # ============================================================================
-# ARCHITECTURE DEMO: Forbidden Dependency Check
+# ARCHITECTURE DEMO 1: Model Isolation Violation Check
 # ----------------------------------------------------------------------------
-# In a clean architecture / DDD onion architecture, domain models must remain
-# pure POPOs (Plain Old Python Objects) and never import from services or adapters.
+# The data model must not depend on application services or adapters.
 #
 # UNCOMMENT the line below to simulate an architectural violation:
-# When uncommented, running `pytest` will fail with an architectural violation!
+# Running `pytest` will fail ONLY `test_model_must_not_depend_on_other_packages`!
 # ============================================================================
 # from shop.services.payment import PaymentService  # ❌ FORBIDDEN DEPENDENCY!
 

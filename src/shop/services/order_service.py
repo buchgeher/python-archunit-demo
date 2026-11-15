@@ -14,7 +14,7 @@ from shop.adapters.repository import InMemoryOrderRepository
 # In a layered architecture, backend services must never depend on the UI.
 #
 # UNCOMMENT the line below to simulate an architectural violation:
-# Running `pytest` will fail `test_ui_isolation` with RED!
+# Running `pytest` will fail ONLY `test_ui_isolation`!
 # ============================================================================
 # from shop.ui.cli import run_cli_checkout_demo  # ❌ FORBIDDEN UI LEAK!
 

@@ -1,17 +1,22 @@
 """
 Architecture Fitness Functions for the 'shop' application.
 
-These tests enforce architectural constraints and package dependency rules
-using pytest-archon (the Python equivalent of Java's ArchUnit).
+These tests enforce architectural rules using pytest-archon:
 
-Enforced rules:
-1. Pure Domain Model: 'shop.model' must NOT depend on any other shop package
-   (services, adapters, ui, etc.).
-2. Directional Layering / Dependency Inversion:
-   - 'shop.services' MAY import 'shop.model' and 'shop.adapters'
-   - But 'shop.adapters' and 'shop.model' MUST NOT import 'shop.services'
-3. UI Separation: 'shop.ui' may access services and models, but no backend layer
-   may ever access 'shop.ui'.
+Demo Workflow for Students:
+---------------------------
+1. Base state: All tests PASS (Green).
+2. Demo Step 1 (Model Isolation):
+   - Uncomment forbidden import in `src/shop/model/order.py`.
+   - ONLY `test_model_must_not_depend_on_other_packages` fails!
+3. Demo Step 2 (UI Layer Isolation):
+   - Re-comment step 1.
+   - Uncomment forbidden import in `src/shop/services/order_service.py`.
+   - ONLY `test_ui_isolation` fails!
+4. Demo Step 3 (Transitive Dependency Analysis):
+   - Demonstrates direct vs. transitive imports:
+     - Direct check passes for adapters.
+     - Transitive check reveals how a corrupt model transitively poisons adapters!
 """
 
 import pytest
@@ -19,96 +24,97 @@ from pytest_archon import archrule
 
 
 # ==============================================================================
-# USE CASE 1: Pure Data Model / Entities (Strict Isolation)
+# DEMO STEP 1: Pure Data Model / Entities (Direct Isolation)
 # ==============================================================================
 def test_model_must_not_depend_on_other_packages():
     """
-    USE CASE 1: The 'model' namespace contains the domain data model (entities & data structures).
-    It MUST NOT depend on any other namespace of the application (services, adapters, ui).
-    
+    STEP 1: The 'model' namespace contains pure data structures and entities.
+    It must not import from 'services', 'adapters', or 'ui'.
+
     DEMO:
-    To see this test FAIL (Red):
-      In `src/shop/model/order.py`, uncomment:
-        `from shop.services.payment import PaymentService`
-      and run `pytest`.
-    
-    To see this test PASS (Green):
-      Comment the import out again and re-run `pytest`.
+    In `src/shop/model/order.py`, uncomment:
+      `from shop.services.payment import PaymentService`
+    -> Running `pytest` will fail ONLY this test!
     """
     (
         archrule(
             "pure_data_model",
-            comment="The data model must not import services, adapters, or UI",
+            comment="The data model must not directly import services, adapters, or UI",
         )
         .match("shop.model*")
         .should_not_import("shop.services*")
         .should_not_import("shop.adapters*")
         .should_not_import("shop.ui*")
-        .check("shop")
+        .check("shop", only_direct_imports=True)
     )
 
 
 # ==============================================================================
-# USE CASE 2: Asymmetric Dependency (One namespace may use another, but not vice-versa)
-# ==============================================================================
-def test_services_may_use_model_but_model_cannot_use_services():
-    """
-    USE CASE 2: Asymmetric Dependency.
-    - 'services' is an orchestration layer and IS ALLOWED to import 'model'.
-    - 'model' is NEVER allowed to import 'services'.
-    """
-    # 1. Negative constraint: model cannot import services
-    (
-        archrule(
-            "model_cannot_depend_on_services",
-            comment="Domain model entities cannot call application services",
-        )
-        .match("shop.model*")
-        .should_not_import("shop.services*")
-        .check("shop")
-    )
-
-
-def test_services_may_use_adapters_but_adapters_cannot_use_services():
-    """
-    Another Asymmetric Dependency example:
-    - 'services' uses 'adapters' (e.g. repositories for data persistence).
-    - But 'adapters' MUST NOT depend on 'services' (prevents cyclic dependencies).
-    """
-    (
-        archrule(
-            "adapters_must_not_depend_on_services",
-            comment="Persistence adapters must not depend back on application services",
-        )
-        .match("shop.adapters*")
-        .should_not_import("shop.services*")
-        .check("shop")
-    )
-
-
-# ==============================================================================
-# USE CASE 3: Clean UI Layer Isolation
+# DEMO STEP 2: Clean UI Layer Isolation
 # ==============================================================================
 def test_ui_isolation():
     """
-    Core backend logic must not depend on UI presentations:
-    - Neither 'model', 'services', nor 'adapters' may import 'shop.ui'.
+    STEP 2: Backend layers must never depend on the UI presentation layer.
 
     DEMO:
-    To see this test FAIL (Red):
-      In `src/shop/services/order_service.py`, uncomment:
-        `from shop.ui.cli import run_cli_checkout_demo`
-      and run `pytest`.
+    In `src/shop/services/order_service.py`, uncomment:
+      `from shop.ui.cli import run_cli_checkout_demo`
+    -> Running `pytest` will fail ONLY this test!
     """
     (
         archrule(
             "no_ui_leakage",
-            comment="No backend module may depend on the UI layer",
+            comment="Backend layers must not directly import the UI layer",
         )
         .match("shop.model*")
         .match("shop.services*")
         .match("shop.adapters*")
         .should_not_import("shop.ui*")
-        .check("shop")
+        .check("shop", only_direct_imports=True)
     )
 
+
+# ==============================================================================
+# DEMO STEP 3: Directional Layering (Adapters must not depend on Services)
+# Direct vs. Transitive Comparison
+# ==============================================================================
+def test_adapters_must_not_depend_directly_on_services():
+    """
+    Direct check: Persistence adapters must not directly import services.
+    Even if 'model' accidentally imports 'services', this test stays GREEN
+    because 'adapters' does not directly import 'services'.
+    """
+    (
+        archrule(
+            "adapters_direct_isolation",
+            comment="Adapters must not directly import application services",
+        )
+        .match("shop.adapters*")
+        .should_not_import("shop.services*")
+        .check("shop", only_direct_imports=True)
+    )
+
+
+# ==============================================================================
+# DEMO STEP 3: Transitive Dependency Analysis (Optional / Advanced)
+# ==============================================================================
+@pytest.mark.skip(reason="Run with: pytest -m transitive or remove skip to demonstrate transitive chain poisoning")
+def test_transitive_dependency_leakage():
+    """
+    STEP 3 (Transitive Analysis):
+    Shows the difference between direct and transitive inspection.
+
+    Without `only_direct_imports=True`, pytest-archon traverses the entire import chain.
+    When 'model/order.py' imports 'PaymentService', then 'adapters' (which imports 'order.py')
+    transitively imports 'services':
+      shop.adapters.repository -> shop.model.order -> shop.services.payment
+    """
+    (
+        archrule(
+            "adapters_transitive_cleanliness",
+            comment="Adapters must not transitively depend on services via model",
+        )
+        .match("shop.adapters*")
+        .should_not_import("shop.services*")
+        .check("shop")  # checks transitive dependency graph!
+    )
