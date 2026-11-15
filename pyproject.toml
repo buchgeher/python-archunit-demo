@@ -1,0 +1,18 @@
+[project]
+name = "python-archunit-demo"
+version = "0.1.0"
+description = "Architectural fitness function demo using pytest-archon"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-archon>=0.0.7",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-v"
