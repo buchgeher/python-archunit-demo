@@ -12,7 +12,7 @@ from typing import List
 # ----------------------------------------------------------------------------
 # The data model must not depend on application services or adapters.
 #
-# UNCOMMENT the line below to simulate an architectural violation:
+# UNCOMMENT the line below (remove '# ' at start of line) to simulate an architectural violation:
 # Running `pytest` will fail ONLY `test_model_must_not_depend_on_other_packages`!
 # ============================================================================
 # from shop.services.payment import PaymentService  # ❌ FORBIDDEN DEPENDENCY!
