@@ -24,6 +24,10 @@ src/
         └── cli.py
 ```
 
+### 🎯 SOLL vs. ⚠️ IST Architecture
+
+![SOLL vs IST Architecture Diagram](docs/images/pytest_archon_soll_ist.svg)
+
 ### Architectural Rules Enforced by Tests:
 
 1. **Pure Domain Model (`shop.model`):**
@@ -147,3 +151,4 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pytest tests/test_architecture.py
 ```
+

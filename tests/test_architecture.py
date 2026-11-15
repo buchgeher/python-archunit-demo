@@ -105,3 +105,4 @@ def test_ui_isolation():
         .should_not_import("shop.ui*")
         .check("shop")
     )
+

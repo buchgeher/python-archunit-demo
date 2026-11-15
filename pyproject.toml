@@ -16,3 +16,4 @@ dev = [
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-v"
+

@@ -23,3 +23,4 @@ def run_cli_checkout_demo() -> None:
 
     success = service.process_order(order)
     print(f"Order placement success: {success}")
+
