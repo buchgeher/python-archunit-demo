@@ -16,4 +16,7 @@ dev = [
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-v"
+markers = [
+    "transitive: advanced test demonstrating transitive dependency leakage",
+]
 

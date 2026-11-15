@@ -96,17 +96,16 @@ def test_adapters_must_not_depend_directly_on_services():
 
 
 # ==============================================================================
-# DEMO STEP 3: Transitive Dependency Analysis (Optional / Advanced)
+# DEMO STEP 3: Transitive Dependency Analysis (Aha-Effekt)
 # ==============================================================================
-@pytest.mark.skip(reason="Run with: pytest -m transitive or remove skip to demonstrate transitive chain poisoning")
 def test_transitive_dependency_leakage():
     """
     STEP 3 (Transitive Analysis):
     Shows the difference between direct and transitive inspection.
 
-    Without `only_direct_imports=True`, pytest-archon traverses the entire import chain.
+    Without `only_direct_imports=True`, pytest-archon traverses the entire import chain!
     When 'model/order.py' imports 'PaymentService', then 'adapters' (which imports 'order.py')
-    transitively imports 'services':
+    transitively inherits the dependency to 'services':
       shop.adapters.repository -> shop.model.order -> shop.services.payment
     """
     (

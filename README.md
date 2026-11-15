@@ -80,53 +80,78 @@ tests/test_architecture.py::test_ui_isolation PASSED                     [100%]
 
 ## 🔴 Live Classroom Demos: Step-by-Step Architecture Violations
 
-The demo is structured so you can demonstrate violations **one by one without confusing students**:
+The demo includes 4 architecture tests designed to explain direct vs. transitive coupling clearly:
 
 ```
-Demo Flow:
-  1. Base State       ➔ 3 Passed, 1 Skipped (Green)
-  2. Demo 1 (Model)   ➔ ONLY test_model_must_not_depend_on_other_packages FAILS (Red)
-  3. Demo 2 (UI Leak) ➔ ONLY test_ui_isolation FAILS (Red)
-  4. Demo 3 (Transit) ➔ Shows why 'adapters' transitively breaks when 'model' is dirty
+Test Suite Overview:
+  1. test_model_must_not_depend_on_other_packages  (Pure model: direct imports)
+  2. test_ui_isolation                             (UI leak: direct imports)
+  3. test_adapters_must_not_depend_directly_on_services (Direct check)
+  4. test_transitive_dependency_leakage            (Transitive graph check)
 ```
 
-### 🔹 Demo 1: Pure Data Model Violation (`shop.model` ➔ `shop.services`)
+### 🔹 Base State (All Green 🟢)
+Run `pytest`:
+```bash
+pytest
+```
+Output: `4 passed in 0.01s`
+
+---
+
+### 🔹 Demo 1: Direct Model Violation (`shop.model` ➔ `shop.services`)
 1. Open [`src/shop/model/order.py`](src/shop/model/order.py).
-2. Uncomment line 19:
+2. Uncomment line 18:
    ```python
    from shop.services.payment import PaymentService  # ❌ FORBIDDEN DEPENDENCY!
    ```
-3. Run `pytest`.
-   - **Result:** **ONLY 1 test fails:** `test_model_must_not_depend_on_other_packages`.
-   - **Takeaway:** The data model must not directly import application services.
-4. Comment line 19 out again.
+3. Run only the direct model test:
+   ```bash
+   pytest -k "test_model_must_not_depend_on_other_packages"
+   ```
+   - **Result:** 🛑 **FAILS** – `model.order` directly imports `services.payment`.
+4. Run the direct adapters test:
+   ```bash
+   pytest -k "test_adapters_must_not_depend_directly_on_services"
+   ```
+   - **Result:** 🟢 **PASSES** – because `adapters` does not directly import `services`.
+
+---
 
 ### 🔹 Demo 2: UI Layer Leakage (`shop.services` ➔ `shop.ui`)
-1. Open [`src/shop/services/order_service.py`](src/shop/services/order_service.py).
-2. Uncomment line 19:
+1. Re-comment line 18 in `order.py`.
+2. Open [`src/shop/services/order_service.py`](src/shop/services/order_service.py).
+3. Uncomment line 19:
    ```python
    from shop.ui.cli import run_cli_checkout_demo  # ❌ FORBIDDEN UI LEAK!
    ```
-3. Run `pytest`.
-   - **Result:** **ONLY 1 test fails:** `test_ui_isolation`.
-   - **Takeaway:** Backend logic must never depend directly on user interfaces.
-4. Comment line 19 out again.
+4. Run `pytest`:
+   - **Result:** 🛑 **ONLY 1 test fails:** `test_ui_isolation`.
+   - **Lesson:** Backend services must never import UI presentation modules.
+5. Re-comment line 19.
 
-### 🔹 Demo 3: Direct vs. Transitive Dependency Leakage
-*Why is isolating the data model so crucial?*
+---
 
-1. Uncomment line 19 in `src/shop/model/order.py` again.
-2. Run `pytest`:
-   - `test_adapters_must_not_depend_directly_on_services` still **PASSES** (because `adapters` has no direct import to `services`).
-3. Now run the transitive test explicitly:
-   ```bash
-   pytest -k "test_transitive_dependency_leakage"
+### 🔹 Demo 3: The "Aha!" Effect – Direct vs. Transitive Coupling
+*Why is model contamination dangerous even if other modules don't touch services directly?*
+
+1. In [`src/shop/model/order.py`](src/shop/model/order.py), uncomment line 18 again:
+   ```python
+   from shop.services.payment import PaymentService  # ❌ FORBIDDEN DEPENDENCY!
    ```
-   - **Result:** It **FAILS** with the full transitive import path:
-     ```text
-     from shop.adapters.repository ↣ shop.model.order ↣ shop.services.payment
-     ```
-   - **Key Lesson for Students:** A bad import in a fundamental layer (`model`) transitively infects every module that uses that layer (`adapters`)!
+2. Run both adapter tests side-by-side:
+   ```bash
+   pytest -k "test_adapters"
+   ```
+   - `test_adapters_must_not_depend_directly_on_services` 🟢 **PASSED** (only looks at direct imports in `adapters`).
+   - `test_transitive_dependency_leakage` 🛑 **FAILED**!
+3. Look at the failure trace of the transitive test:
+   ```text
+   from shop.adapters ↣ shop.adapters.repository ↣ shop.model.order ↣ shop.services.payment
+   ```
+4. **Key Lesson for Students:**
+   Even though `adapters.repository` only imports `Order`, it now transitively pulls in `PaymentService`! 
+   Unwanted dependencies in core data structures "infect" the entire system transitively.
 
 ---
 
