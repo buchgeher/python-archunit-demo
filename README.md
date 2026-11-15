@@ -78,26 +78,32 @@ tests/test_architecture.py::test_ui_isolation PASSED                     [100%]
 
 ---
 
-## 🔴 Live Classroom Demo: Simulating an Architectural Violation
+## 🔴 Live Classroom Demos: Simulating Architectural Violations
 
-To demonstrate how the automated architecture test catches an illegal dependency:
+You can demonstrate two distinct architectural violations by toggling comments:
 
+### Demo 1: Corrupting the Pure Data Model (Transitiver Verstoß)
 1. Open [`src/shop/model/order.py`](src/shop/model/order.py).
 2. Uncomment line 18:
    ```python
    from shop.services.payment import PaymentService  # ❌ FORBIDDEN DEPENDENCY!
    ```
-3. Re-run `pytest`:
-   ```bash
-   pytest
+3. Run `pytest`. The test fails because `model` imports `services` (violating model purity and creating a transitive cycle).
+4. Comment the line out again to restore **Green**.
+
+### Demo 2: UI Layer Leakage (`test_ui_isolation`)
+1. Open [`src/shop/services/order_service.py`](src/shop/services/order_service.py).
+2. Uncomment line 19:
+   ```python
+   from shop.ui.cli import run_cli_checkout_demo  # ❌ FORBIDDEN UI LEAK!
    ```
-4. Observe the test failure:
+3. Run `pytest`. Observe how **only** `test_ui_isolation` fails:
    ```text
-   FAILED Rule 'pure_domain_model':
-   - module 'shop.model' has FORBIDDEN import shop.services.payment (matched by glob pattern /shop.services*/)
-       from shop.model ↣ shop.model.order ↣ shop.services.payment
+   FAILED Rule 'no_ui_leakage':
+   - module 'shop.services' has FORBIDDEN import shop.ui.cli
+       from shop.services ↣ shop.services.order_service ↣ shop.ui.cli
    ```
-5. Comment line 18 out again and re-run `pytest` to see it turn **Green** again.
+4. Comment the line out again to return to **Green**.
 
 ---
 

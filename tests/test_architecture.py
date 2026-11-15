@@ -91,8 +91,14 @@ def test_services_may_use_adapters_but_adapters_cannot_use_services():
 # ==============================================================================
 def test_ui_isolation():
     """
-    Core business logic must not depend on UI presentations:
+    Core backend logic must not depend on UI presentations:
     - Neither 'model', 'services', nor 'adapters' may import 'shop.ui'.
+
+    DEMO:
+    To see this test FAIL (Red):
+      In `src/shop/services/order_service.py`, uncomment:
+        `from shop.ui.cli import run_cli_checkout_demo`
+      and run `pytest`.
     """
     (
         archrule(
